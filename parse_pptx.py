@@ -28,8 +28,7 @@ class PPTXParser:
 
        """
         for slide_number, slide in enumerate(self.presentation.slides):
-            slide_text = PPTXParser.extract_text_from_slide(slide)
-            slide_text = slide_text.replace('©', '')
+            slide_text = PPTXParser.extract_text_from_slide(slide).replace('©', '')
             if slide_text:
                 self.parsing_results_dict[slide_number + 1] = slide_text
             else:
@@ -71,5 +70,11 @@ class PPTXParser:
         return ''.join([run.text + ' ' for run in paragraph.runs])
 
 
-
+    def get_presentation_raw_text(self):
+        """
+        get all text from presentation concatenated into one single string.
+        Returns:
+        str: all the text of the presentation.
+        """
+        return ''.join([value + ' ' for value in self.parsing_results_dict.values()])
 
