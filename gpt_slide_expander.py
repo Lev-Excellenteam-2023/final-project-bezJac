@@ -64,29 +64,25 @@ class GPTSlideExpander:
         else:
             raise ValueError("Invalid data. presentation's text cannot be empty.")
 
-    async def generate_explanation_for_presentation(self, parsed_presentation: Dict[int, str], presentation_text: str,
+    async def generate_explanation_for_presentation(self, parsed_presentation: Dict[int, str], presentation_topic: str,
                                                     max_retry: int) -> None:
         """
         Generates explanations for each slide in a presentation.
         Args:
             parsed_presentation (Dict[int, str]): A dictionary mapping slide index to slide content.
-            presentation_text (str): The  full concatenated text of the presentation.
+            presentation_topic (str): main topic of presentation.
             max_retry (int): The maximum number of retries for generating an explanation for each slide.
         Raises:
             RuntimeError: If the main topic retrieval from the API fails.
         Returns:
             None
         """
-        try:
-            main_topic = GPTSlideExpander.generate_presentation_main_topic(presentation_text, max_retry)
-        except Exception as e:
-            raise RuntimeError("failed to retrieve main topic from API", e.args[0])
 
         tasks = []
         # Generate tasks for each slide
         for index, slide in enumerate(parsed_presentation.values()):
             task = asyncio.create_task(
-                GPTSlideExpander.generate_explanation_for_slide_with_retry(slide, main_topic, max_retry))
+                GPTSlideExpander.generate_explanation_for_slide_with_retry(slide, presentation_topic, max_retry))
             tasks.append(task)
 
         # Execute tasks concurrently
@@ -100,12 +96,12 @@ class GPTSlideExpander:
                 self.expanded_slide_explanations[slide_index] = "ERROR - explanation generation for this slide failed\n"
 
     @staticmethod
-    async def generate_explanation_for_slide_with_retry(topic: str, main_topic: str, max_try: int) -> str:
+    async def generate_explanation_for_slide_with_retry(slide_text: str, presentation_topic: str, max_try: int) -> str:
         """
         Generates an expanded explanation for a slide's topic with retry logic in case of API errors.
         Args:
-            topic (str): The topic of the slide for which an explanation is to be generated (text extracted from slide).
-            main_topic (str): The main topic of the presentation.
+            slide_text (str): The topic of the slide for which an explanation is to be generated (text extracted from slide).
+            presentation_topic (str): The main topic of the presentation.
             max_try (int): The maximum number of attempts to generate an explanation.
         Returns:
             str: The generated expanded explanation.
@@ -114,7 +110,7 @@ class GPTSlideExpander:
         """
         for _ in range(max_try):
             try:
-                explanation = await GPTSlideExpander.generate_explanation_for_slide(topic, main_topic)
+                explanation = await GPTSlideExpander.generate_explanation_for_slide(slide_text, presentation_topic)
                 return explanation
             except openai.error as e:
                 print(f"Query attempt failed. Error: {e}")
@@ -122,22 +118,32 @@ class GPTSlideExpander:
         raise Exception(f"Query failed after {max_try} attempts.")
 
     @staticmethod
-    async def generate_explanation_for_slide(topic: str, presentation_topic: str) -> str:
+    async def generate_explanation_for_slide(slide_text: str, presentation_topic: str) -> str:
         """
         Generates an explanation for a slide topic within the context of the main topic.
         Args:
-            topic (str): The topic of the slide for which an explanation is to be generated.
+            slide_text (str): The text of the slide for which an explanation is to be generated.
             presentation_topic (str): The main topic of the presentation.
         Returns:
             str: The generated expanded explanation. (empty str if slide has no text)
         """
-        if topic and topic != ' ':
+        if slide_text and slide_text != ' ':
             messages = [
-                {"role": "system",
-                 "content": "You are a chatbot that generates expanded explanations about slide topics."},
-                {"role": "user",
-                 "content": f"Provide an explanation of the slide based on the content:{topic}, within the context of the main topic:{presentation_topic} if applicable, in up to 3 sentences."},
+                {
+                    "role": "system",
+                    "content": "You are a chatbot that generates expanded explanations about slide topics."
+                },
+                {
+                    "role": "user",
+                    "content": f"Please provide an expanded explanation for the slide content. "
+                               f"The slide topic is: {slide_text}. "
+                               f"If applicable, provide the explanation within the context of the "
+                               f"main topic: {presentation_topic}. "
+                               f"Please make the explanation natural and expand on the slide topic with"
+                               f" relevant details. make the explanation up tp 3 sentences"
+                }
             ]
+
             gpt_response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=messages
