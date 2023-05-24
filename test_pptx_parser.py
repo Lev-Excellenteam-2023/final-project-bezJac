@@ -1,6 +1,6 @@
 
 
-from parse_pptx import PPTXParser
+from pptx_parser import PPTXParser
 import pytest
 
 
@@ -26,7 +26,7 @@ def test_extract_text_from_presentation(parser):
         9: '',
         10: 'Thank you for participating Contact me: jacober@g.jct.ac.il ',
     }
-    assert parser.parsing_results_dict == expected_results
+    assert parser.pptx_parsed_data == expected_results
 
 
 def test_extract_text_from_slide_with_text(parser):

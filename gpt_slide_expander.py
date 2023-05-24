@@ -5,13 +5,13 @@ import asyncio
 import openai
 
 
-class GPTSlideExpander:
+class GptSlideExpander:
     """
         A class that utilizes OpenAI's GPT models to generate expanded explanations for presentation slides.
     """
 
     def __init__(self):
-        GPTSlideExpander.configure_api_key()
+        GptSlideExpander.configure_api_key()
         self.expanded_slide_explanations = {}
 
     @staticmethod
@@ -82,7 +82,7 @@ class GPTSlideExpander:
         # Generate tasks for each slide
         for index, slide in enumerate(parsed_presentation.values()):
             task = asyncio.create_task(
-                GPTSlideExpander.generate_explanation_for_slide_with_retry(slide, presentation_topic, max_retry))
+                GptSlideExpander.generate_explanation_for_slide_with_retry(slide, presentation_topic, max_retry))
             tasks.append(task)
 
         # Execute tasks concurrently
@@ -110,7 +110,7 @@ class GPTSlideExpander:
         """
         for _ in range(max_try):
             try:
-                explanation = await GPTSlideExpander.generate_explanation_for_slide(slide_text, presentation_topic)
+                explanation = await GptSlideExpander.generate_explanation_for_slide(slide_text, presentation_topic)
                 return explanation
             except openai.error as e:
                 print(f"Query attempt failed. Error: {e}")

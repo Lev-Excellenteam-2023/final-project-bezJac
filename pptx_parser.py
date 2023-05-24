@@ -18,7 +18,7 @@ class PPTXParser:
             raise FileNotFoundError("Please provide a valid pptx file path.")
 
         # dict[slide number : text extracted from slide]
-        self.parsing_results_dict: Dict[int, str] = {}
+        self.pptx_parsed_data: Dict[int, str] = {}
 
     def extract_text_from_presentation(self) -> None:
         """
@@ -30,9 +30,9 @@ class PPTXParser:
         for slide_number, slide in enumerate(self.presentation.slides):
             slide_text = PPTXParser.extract_text_from_slide(slide).replace('©', '')
             if slide_text:
-                self.parsing_results_dict[slide_number + 1] = slide_text
+                self.pptx_parsed_data[slide_number + 1] = slide_text
             else:
-                self.parsing_results_dict[slide_number + 1] = ''
+                self.pptx_parsed_data[slide_number + 1] = ''
 
     @staticmethod
     def extract_text_from_slide(current_slide) -> str:
@@ -76,5 +76,5 @@ class PPTXParser:
         Returns:
         str: all the text of the presentation.
         """
-        return ''.join([value + ' ' for value in self.parsing_results_dict.values()])
+        return ''.join([value + ' ' for value in self.pptx_parsed_data.values()])
 
