@@ -18,21 +18,21 @@ class PPTXParser:
             raise FileNotFoundError("Please provide a valid pptx file path.")
 
         # dict[slide number : text extracted from slide]
-        self.parsing_results_dict: Dict[int, str] = {}
+        self.parsed_slides_dictionary: Dict[int, str] = {}
 
     def extract_text_from_presentation(self) -> None:
         """
         Extracts the text from each slide in the presentation.
-        Each slide's text is added to the parsing_result_dict attribute of the class.
+        Each slide's text is added to the parsing_result_dict of the class with slide number serving as the key.
         If no text was found in slide, empty str is placed in the dict.
 
        """
         for slide_number, slide in enumerate(self.presentation.slides):
             slide_text = PPTXParser.extract_text_from_slide(slide).replace('©', '')
             if slide_text:
-                self.parsing_results_dict[slide_number + 1] = slide_text
+                self.parsed_slides_dictionary[slide_number + 1] = slide_text
             else:
-                self.parsing_results_dict[slide_number + 1] = ''
+                self.parsed_slides_dictionary[slide_number + 1] = ''
 
     @staticmethod
     def extract_text_from_slide(current_slide) -> str:
@@ -69,12 +69,10 @@ class PPTXParser:
         """
         return ''.join([run.text + ' ' for run in paragraph.runs])
 
-
-    def get_presentation_raw_text(self):
+    def get_presentation_full_text(self):
         """
         get all text from presentation concatenated into one single string.
         Returns:
         str: all the text of the presentation.
         """
-        return ''.join([value + ' ' for value in self.parsing_results_dict.values()])
-
+        return ''.join([value + ' ' for value in self.parsed_slides_dictionary.values()])
