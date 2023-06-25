@@ -1,12 +1,12 @@
 
 
-from pptx_parser import PPTXParser
+from pptx_parser.pptx_parser import PPTXParser
 import pytest
 
 
 @pytest.fixture
 def parser():
-    path = "IOT_ppt.pptx"
+    path = "../IOT_ppt.pptx"
     parser = PPTXParser(path)
     return parser
 

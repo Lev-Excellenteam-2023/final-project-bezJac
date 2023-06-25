@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import json
 from typing import Dict
-from pptx_parser import PPTXParser
+from pptx_parser.pptx_parser import PPTXParser
 from gpt_slide_expander import GptSlideExpander
 
 """
