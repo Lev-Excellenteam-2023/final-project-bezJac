@@ -33,6 +33,7 @@ def upload():
 
 @app.route('/status/<string:uid>', methods=['GET'])
 def status(uid):
+    #uid = uid[8:]
     uploads_path = app.config['UPLOAD_FOLDER']
     output_path = app.config['OUTPUT_FOLDER']
     file_exists = False
@@ -48,12 +49,12 @@ def status(uid):
     if not file_exists:
         return jsonify({'status': 'not found'}), 404
 
-    filename = os.path.basename(file_path).split('_', 2)[-1]
+    filename = os.path.splitext(os.path.basename(file_path))[0]
 
     timestamp = os.path.basename(file_path).split('_', 1)[1].split('_', 1)[0]
     timestamp = datetime.datetime.strptime(timestamp, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S")
 
-    output_filename = f"output_{uid}.json"
+    output_filename = f"{filename}.json"
     output_file_path = os.path.join(output_path, output_filename)
     output_exists = os.path.exists(output_file_path)
 
