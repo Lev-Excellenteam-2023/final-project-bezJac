@@ -1,8 +1,9 @@
 import os
 import datetime
-import pdb
 import uuid
 import json
+from typing import Dict, Union
+
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -13,7 +14,12 @@ app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 
 
 @app.route('/upload', methods=['POST'])
-def upload():
+def upload() -> Dict[str, str]:
+    """
+    Uploads a file to the server.
+    Returns:
+        dict: A JSON response containing the unique identifier (uid) of the uploaded file.
+    """
     file = request.files['file']
     if file:
         uid = str(uuid.uuid4())
@@ -32,8 +38,14 @@ def upload():
 
 
 @app.route('/status/<string:uid>', methods=['GET'])
-def status(uid):
-    #uid = uid[8:]
+def status(uid: str) -> Union[Dict[str, Union[str, int, Dict[str, Union[str, int, None]]]], Dict[str, str]]:
+    """
+    Retrieves the processing status and explanation for a given file UID.
+    Args:
+        uid (str): The unique identifier of the file.
+    Returns:
+        dict: A JSON response containing the processing status, filename, timestamp, and explanation (if available).
+    """
     uploads_path = app.config['UPLOAD_FOLDER']
     output_path = app.config['OUTPUT_FOLDER']
     file_exists = False

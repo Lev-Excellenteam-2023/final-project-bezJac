@@ -3,7 +3,7 @@ import json
 import os
 import threading
 import time
-from typing import Dict
+from typing import Dict, List
 from pptx_parser.pptx_parser import PPTXParser
 import openai
 
@@ -81,8 +81,9 @@ class GptSlideExpander:
         else:
             raise ValueError("Invalid data. presentation's text cannot be empty.")
 
-    async def generate_explanation_for_presentation(self, parsed_presentation: Dict[int, str], presentation_topic: str,
-                                                    max_retry: int) -> None:
+    @staticmethod
+    async def generate_explanation_for_presentation(parsed_presentation: Dict[int, str], presentation_topic: str,
+                                                    max_retry: int) -> Dict[int, str]:
         """
         Generates explanations for each slide in a presentation.
         Args:
@@ -186,7 +187,7 @@ class GptSlideExpander:
         except openai.error as e:
             return f"ERROR - explanation generation for slide {slide_index} failed: {str(e)}"
 
-    def run_explainer(self):
+    def run_explainer(self) -> None:
         """
         Runs the GPT explainer system indefinitely, processing files dropped into the 'uploads' folder.
         The explainer sleeps for 10 seconds between iterations.
@@ -197,7 +198,7 @@ class GptSlideExpander:
                 self.process_file(file_path)
                 time.sleep(10)  # Sleep for 10 seconds between processing each file
 
-    def get_files_to_process(self):
+    def get_files_to_process(self) -> List[str]:
         """
         Scans the 'uploads' folder and identifies the files that haven't been processed yet.
         Returns:
@@ -216,7 +217,7 @@ class GptSlideExpander:
 
         return files_to_process
 
-    def process_file(self, file_path):
+    def process_file(self, file_path: str) -> None:
         """
         Processes a file using the existing code for parsing and generating explanations.
         Saves the explanation JSON in the 'outputs' folder.
@@ -226,19 +227,23 @@ class GptSlideExpander:
         pptx_parser = PPTXParser(file_path)
         pptx_parser.extract_text_from_presentation()
 
-        presentation_topic = self.generate_presentation_main_topic(pptx_parser.get_presentation_full_text(),
-                                                                   max_retry=3)
-
+        presentation_topic = GptSlideExpander.generate_presentation_main_topic(pptx_parser.get_presentation_full_text(),
+                                                                               max_retry=3)
         file_name = os.path.basename(file_path)
         self.update_processed_files(file_name)
 
+        print(f"Processing file: {file_name}")
+
         result = asyncio.run(
-            self.generate_explanation_for_presentation(pptx_parser.parsed_slides_dictionary, presentation_topic,
-                                                       max_retry=3))
+            GptSlideExpander.generate_explanation_for_presentation(pptx_parser.parsed_slides_dictionary,
+                                                                   presentation_topic,
+                                                                   max_retry=3))
 
         self.save_explanation_json(file_name, result)
 
-    def update_processed_files(self, file_name):
+        print(f"File processed: {file_name}")
+
+    def update_processed_files(self, file_name: str) -> None:
         """
         Updates the set of processed files in a thread-safe manner.
         Args:
@@ -247,7 +252,7 @@ class GptSlideExpander:
         with self.processed_files_lock:
             self.expanded_slide_explanations[file_name] = True
 
-    def save_explanation_json(self, file_name, explanation_result):
+    def save_explanation_json(self, file_name: str, explanation_result: Dict[int, str]) -> None:
         """
         Saves the explanation JSON for the processed file in the 'outputs' folder.
         Args:
