@@ -1,26 +1,37 @@
 import requests
 from datetime import datetime
 from dataclasses import dataclass
-import webbrowser
-import os
 
 
 @dataclass
 class Status:
+    """Represents the status of a file upload and processing."""
     status: str
     filename: str
     timestamp: datetime
     explanation: str
 
-    def is_done(self):
+    def is_done(self) -> bool:
+        """Check if the status is 'done'."""
         return self.status == 'done'
 
 
 class WebAppClient:
-    def __init__(self, base_url):
+    """Client for interacting with the web application."""
+
+    def __init__(self, base_url: str):
         self.base_url = base_url
 
-    def upload(self, file_path):
+    def upload(self, file_path: str) -> str:
+        """
+        Upload a file to the web application.
+        Args:
+            file_path (str): The path to the file to upload.
+        Returns:
+            str: The unique identifier (UID) associated with the uploaded file.
+        Raises:
+            Exception: If the upload fails with a non-200 status code.
+        """
         url = f"{self.base_url}/upload"
         with open(file_path, 'rb') as file:
             response = requests.post(url, files={'file': file})
@@ -31,7 +42,16 @@ class WebAppClient:
         else:
             raise Exception(f"Upload failed with status code {response.status_code}")
 
-    def status(self, uid):
+    def status(self, uid: str) -> type[Status]:
+        """
+        Retrieve the status of a file upload.
+        Args:
+            uid (str): The unique identifier (UID) associated with the file.
+        Returns:
+            Status: The status of the file upload.
+        Raises:
+            Exception: If the status retrieval fails with a non-200 status code.
+        """
         url = f"{self.base_url}/status/{uid}"
         params = uid
         response = requests.get(url, params=params)
@@ -46,7 +66,8 @@ class WebAppClient:
         else:
             raise Exception(f"Status retrieval failed with status code {response.status_code}")
 
-    def run_client(self):
+    def run_client(self) -> None:
+        """Run the WebAppClient and interact with the web application."""
         print("Welcome to the Web App Client!")
         while True:
             print("\nSelect an option:")
@@ -79,7 +100,14 @@ class WebAppClient:
                 print("Invalid choice. Please try again.")
 
     @staticmethod
-    def select_file():
+    def select_file() -> str:
+        """
+        Select a file using a file dialog.
+        Returns:
+            str: The path to the selected file, or None if the selection was canceled.
+        Raises:
+            ImportError: If Tkinter is not installed.
+        """
         try:
             from tkinter import Tk
             from tkinter.filedialog import askopenfilename

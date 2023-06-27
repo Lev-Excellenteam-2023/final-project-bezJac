@@ -3,7 +3,7 @@ import asyncio
 import json
 from typing import Dict
 from pptx_parser.pptx_parser import PPTXParser
-from gpt_slide_expander import GptSlideExpander
+from gpt_explainer.gpt_slide_expander import GptSlideExpander
 
 """
 This script generates slide explanations from a PowerPoint (PPTX) file. It utilizes the `PPTXParser` class to extract
