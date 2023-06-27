@@ -1,8 +1,6 @@
 import requests
 from datetime import datetime
 from dataclasses import dataclass
-import webbrowser
-import os
 
 
 @dataclass
