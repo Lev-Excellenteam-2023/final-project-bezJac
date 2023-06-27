@@ -1,12 +1,15 @@
 import os
 import datetime
+import pdb
 import uuid
 import json
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = r'C:\Users\mybj2\Desktop\School\Excellenteam\python\final-project-bezJac\uploads'
+OUTPUT_FOLDER = r'C:\Users\mybj2\Desktop\School\Excellenteam\python\final-project-bezJac\outputs'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 
 
 @app.route('/upload', methods=['POST'])
@@ -16,13 +19,13 @@ def upload():
         uid = str(uuid.uuid4())
 
         original_filename = file.filename
+        file_name, file_ext = os.path.splitext(original_filename)
 
         timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        new_filename = f"{original_filename}_{timestamp}_{uid}"
+        new_filename = f"{uid}_{timestamp}_{file_name}_{file_ext}"
 
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], new_filename))
 
-        # Return the UID as JSON response
         return jsonify({'uid': uid})
     else:
         return jsonify({'error': 'No file provided'}), 400
@@ -31,6 +34,7 @@ def upload():
 @app.route('/status/<string:uid>', methods=['GET'])
 def status(uid):
     uploads_path = app.config['UPLOAD_FOLDER']
+    output_path = app.config['OUTPUT_FOLDER']
     file_exists = False
     file_path = None
 
@@ -44,17 +48,18 @@ def status(uid):
     if not file_exists:
         return jsonify({'status': 'not found'}), 404
 
-    filename = os.path.basename(file_path)
-    original_filename, timestamp, _ = filename.split('_', 2)
+    filename = os.path.basename(file_path).split('_', 2)[-1]
+
+    timestamp = os.path.basename(file_path).split('_', 1)[1].split('_', 1)[0]
     timestamp = datetime.datetime.strptime(timestamp, "%Y%m%d%H%M%S").strftime("%Y-%m-%d %H:%M:%S")
 
     output_filename = f"output_{uid}.json"
-    output_file_path = os.path.join(uploads_path, output_filename)
+    output_file_path = os.path.join(output_path, output_filename)
     output_exists = os.path.exists(output_file_path)
 
     response = {
         'status': 'done' if output_exists else 'pending',
-        'filename': original_filename,
+        'filename': filename,
         'timestamp': timestamp,
         'explanation': None
     }
